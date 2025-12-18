@@ -110,6 +110,8 @@ export interface SoapSubjective {
   riscoCardiovascularLevel?: RiskLevel;
   ivcf20Score?: number;
   ivcf20Result?: string;
+  // Added ivcf20Level to match ClinicalRecord needs and IVCF20Modal output
+  ivcf20Level?: 'LOW' | 'MODERATE' | 'HIGH';
   medicacoes: string;
   antFamiliares: string;
   habitos: string;
