@@ -86,7 +86,7 @@ const PhysicalExamSection: React.FC<Props> = ({ data, patientType, subType, age 
           Biometria e Sinais Vitais
         </h3>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-y-6 gap-x-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-y-6 gap-x-4">
           <div>
             <label className="text-[10px] font-bold text-slate-500 block mb-1">PA (mmHg)</label>
             <input name="pa" value={data.sinaisVitais.pa} onChange={handleVitalChange} className={inputClass} placeholder="120/80" />
@@ -122,6 +122,13 @@ const PhysicalExamSection: React.FC<Props> = ({ data, patientType, subType, age 
             <input name="estatura" value={data.sinaisVitais.estatura} onChange={handleVitalChange} className={inputClass} />
             {zScores?.height && <span className={`text-[9px] font-bold block mt-1 text-center ${getZScoreColor(zScores.height)}`}>Z: {zScores.height}</span>}
           </div>
+          {patientType === PatientType.PEDIATRIC && (
+            <div>
+              <label className="text-[10px] font-bold text-slate-500 block mb-1">PC (cm)</label>
+              <input name="pc" value={data.sinaisVitais.pc} onChange={handleVitalChange} className={inputClass} placeholder="Perímetro Cefálico" />
+              {zScores?.pc && <span className={`text-[9px] font-bold block mt-1 text-center ${getZScoreColor(zScores.pc)}`}>Z: {zScores.pc}</span>}
+            </div>
+          )}
           <div>
             <label className="text-[10px] font-bold text-slate-500 block mb-1">IMC</label>
             <input name="imc" value={data.sinaisVitais.imc} readOnly className={`${inputClass} bg-slate-50 dark:bg-black/20`} />
