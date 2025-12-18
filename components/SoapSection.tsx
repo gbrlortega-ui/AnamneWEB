@@ -38,10 +38,11 @@ const SoapSection: React.FC<Props> = ({ part, data, idData, patientType, onChang
     });
   };
 
-  const handleIVCFResult = (score: number, resultText: string) => {
+  // Fixed handleIVCFResult to include the vulnerability level
+  const handleIVCFResult = (score: number, resultText: string, level: 'LOW' | 'MODERATE' | 'HIGH') => {
     onChange({
       ...data,
-      s: { ...data.s, ivcf20Score: score, ivcf20Result: resultText }
+      s: { ...data.s, ivcf20Score: score, ivcf20Result: resultText, ivcf20Level: level }
     });
   };
 
@@ -228,7 +229,7 @@ const SoapSection: React.FC<Props> = ({ part, data, idData, patientType, onChang
                             <h4 className="text-[10px] font-black uppercase tracking-widest text-purple-700 opacity-60">IVCF-20: Escore {data.s.ivcf20Score}</h4>
                             <div className="text-sm font-black leading-tight text-purple-900">{data.s.ivcf20Result}</div>
                           </div>
-                          <button onClick={() => onChange({...data, s: {...data.s, ivcf20Score: undefined, ivcf20Result: ''}})} className="text-[10px] font-bold text-purple-400 hover:text-purple-600">Remover</button>
+                          <button onClick={() => onChange({...data, s: {...data.s, ivcf20Score: undefined, ivcf20Result: '', ivcf20Level: undefined}})} className="text-[10px] font-bold text-purple-400 hover:text-purple-600">Remover</button>
                         </div>
                       )}
                     </div>
