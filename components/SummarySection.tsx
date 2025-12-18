@@ -23,16 +23,21 @@ const SummarySection: React.FC<Props> = ({ record }) => {
     abdome: 'Abdome/Gastrintestinal', genitourinario: 'Genitourinário', 
     musculoEsqueletico: 'Músculo-Esquelético', nervoso: 'Nervoso e Psíquico',
     crescimento: 'Crescimento e Desenv.', cognitivo: 'Cognitivo/Comportamental',
-    fisiologicos: 'Fisiológicos', patologicos: 'Patológicos', familiares: 'Familiares',
-    habitos: 'Hábitos e Estilo de Vida', psicossocial: 'Socioeconômico/Moradia',
-    gestacional: 'Gestacionais', neonatal: 'Neonatais', dnpm: 'DNPM', 
-    vacinacao: 'Vacinação', funcionalidade: 'Funcionalidade', polifarmacia: 'Polifarmácia',
+    fisiologicos: 'Antecedentes Fisiológicos', patologicos: 'Antecedentes Patológicos', 
+    familiares: 'Antecedentes Familiares', habitos: 'Hábitos e Estilo de Vida', 
+    psicossocial: 'Socioeconômico/Moradia', gestacional: 'Antecedentes Gestacionais', 
+    neonatal: 'Antecedentes Neonatais', dnpm: 'Desenvolvimento (DNPM)', 
+    vacinacao: 'Vacinação', funcionalidade: 'Funcionalidade/AVDs', polifarmacia: 'Polifarmácia/Medicações',
     peleAnexos: 'Pele e Anexos', aparelhoRespiratorio: 'Aparelho Respiratório',
     aparelhoCardiovascular: 'Aparelho Cardiovascular', aparelhoGenitourinario: 'Aparelho Genitourinário',
     aparelhoMusculoEsqueletico: 'Aparelho Músculo-Esquelético', extremidades: 'Extremidades e Pulsos',
-    neurologico: 'Exame Neurológico', fontanelas: 'Fontanelas'
+    neurologico: 'Exame Neurológico', fontanelas: 'Fontanelas',
+    antFisiologicos: 'Antecedentes Fisiológicos', antPatologicos: 'Antecedentes Patológicos',
+    antFamiliares: 'Antecedentes Familiares', medicacoes: 'Medicações em Uso',
+    socioeconomico: 'Socioeconômico e Social'
   };
 
+  const qpHma = record.qd || record.hma ? `${record.qd ? 'QD: ' + record.qd + '\n' : ''}${record.hma || ''}` : record.soap?.s.qpHma;
   const cvRiskText = record.antecedentes.riscoCardiovascular || record.soap?.s.riscoCardiovascular;
   const cvRiskLevel = record.antecedentes.riscoCardiovascularLevel || record.soap?.s.riscoCardiovascularLevel;
   const ivcfResultText = record.antecedentes.ivcf20Result || record.soap?.s.ivcf20Result;
@@ -55,20 +60,20 @@ const SummarySection: React.FC<Props> = ({ record }) => {
 
   const getCVColorClasses = (level?: RiskLevel) => {
     switch (level) {
-      case 'LOW': return 'bg-[#dcfce7] border-[#16a34a] text-[#14532d]'; 
-      case 'MODERATE': return 'bg-[#fef9c3] border-[#ca8a04] text-[#713f12]';
+      case 'LOW': return 'bg-[#dcfce7] border-[#22c55e] text-[#14532d]'; 
+      case 'MODERATE': return 'bg-[#fef9c3] border-[#eab308] text-[#713f12]';
       case 'HIGH':
       case 'VERY_HIGH':
-      case 'EXTREME': return 'bg-[#fee2e2] border-[#dc2626] text-[#7f1d1d]';
+      case 'EXTREME': return 'bg-[#fee2e2] border-[#ef4444] text-[#7f1d1d]';
       default: return 'bg-slate-50 border-slate-300 text-slate-800';
     }
   };
 
   const getIVCFColorClasses = (level?: 'LOW' | 'MODERATE' | 'HIGH') => {
     switch (level) {
-      case 'LOW': return 'bg-[#dcfce7] border-[#16a34a] text-[#14532d]';
-      case 'MODERATE': return 'bg-[#fef9c3] border-[#ca8a04] text-[#713f12]';
-      case 'HIGH': return 'bg-[#fee2e2] border-[#dc2626] text-[#7f1d1d]';
+      case 'LOW': return 'bg-[#dcfce7] border-[#22c55e] text-[#14532d]';
+      case 'MODERATE': return 'bg-[#fef9c3] border-[#eab308] text-[#713f12]';
+      case 'HIGH': return 'bg-[#fee2e2] border-[#ef4444] text-[#7f1d1d]';
       default: return 'bg-purple-50 border-purple-200 text-purple-900';
     }
   };
@@ -76,34 +81,7 @@ const SummarySection: React.FC<Props> = ({ record }) => {
   return (
     <div id="print-root-container" className="p-0 bg-transparent">
       <style dangerouslySetInnerHTML={{ __html: `
-        /* RESET E CORREÇÕES DE SOBREPOSIÇÃO */
-        .record-section {
-          width: 100%;
-          margin-bottom: 24px;
-          clear: both;
-          display: block;
-          overflow: visible;
-        }
-
-        .text-content {
-          white-space: pre-wrap !important;
-          word-break: break-word !important;
-          overflow-wrap: break-word !important;
-          display: block !important;
-          line-height: 1.6 !important;
-          width: 100% !important;
-        }
-
-        .vital-box {
-          border: 1px solid #cbd5e1;
-          padding: 8px;
-          text-align: center;
-          border-radius: 8px;
-          background: #f8fafc;
-          min-width: 90px;
-          flex: 1;
-        }
-
+        /* CONFIGURAÇÃO PARA IMPRESSÃO MULTI-PÁGINAS */
         @media print {
           html, body {
             height: auto !important;
@@ -117,32 +95,52 @@ const SummarySection: React.FC<Props> = ({ record }) => {
 
           .no-print { display: none !important; }
 
-          @page { size: A4; margin: 1.5cm; }
+          @page { 
+            size: A4; 
+            margin: 1.5cm; 
+          }
 
           #clinical-document {
             width: 100% !important;
-            color: black !important;
             padding: 0 !important;
-            font-size: 11pt !important;
-            overflow: visible !important;
+            margin: 0 !important;
+            color: black !important;
+            background: white !important;
+            display: block !important;
+          }
+
+          .record-section {
+            display: block !important;
+            width: 100% !important;
+            page-break-inside: auto !important; /* Permite quebrar seções longas entre páginas */
+            margin-bottom: 20pt !important;
+            clear: both !important;
           }
 
           h3 {
-            border-bottom: 2pt solid #000 !important;
+            page-break-after: avoid !important; /* Título nunca fica sozinho no fim da página */
+            border-bottom: 2pt solid black !important;
             margin: 15pt 0 10pt 0 !important;
             padding-bottom: 2pt !important;
-            font-size: 13pt !important;
-            font-weight: bold !important;
+            font-size: 12pt !important;
             text-transform: uppercase !important;
-            page-break-after: avoid !important;
+          }
+
+          .text-content {
+            page-break-inside: auto !important;
+            display: block !important;
+            white-space: pre-wrap !important;
+            word-wrap: break-word !important;
+            line-height: 1.5 !important;
+            font-size: 10pt !important;
+            text-align: justify;
           }
 
           .vitals-grid-print {
+            page-break-inside: avoid !important; /* Sinais vitais devem ficar juntos */
             display: grid !important;
-            grid-template-columns: repeat(6, 1fr) !important;
-            gap: 5pt !important;
-            width: 100% !important;
-            margin-bottom: 15pt !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 4pt !important;
           }
 
           .vital-box-print {
@@ -151,85 +149,87 @@ const SummarySection: React.FC<Props> = ({ record }) => {
             text-align: center !important;
             background-color: #f8fafc !important;
           }
-          
+
           .risk-block {
-             border-width: 2pt !important;
-             padding: 10pt !important;
-             margin-bottom: 10pt !important;
-             -webkit-print-color-adjust: exact !important;
-             print-color-adjust: exact !important;
-             page-break-inside: avoid !important;
+            page-break-inside: avoid !important;
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
           }
+          
+          .id-grid {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            gap: 10pt !important;
+          }
+        }
+
+        /* ESTILOS DE TELA */
+        .text-content {
+          white-space: pre-wrap;
+          word-wrap: break-word;
+          overflow-wrap: break-word;
         }
       `}} />
 
       <div id="clinical-document" className="max-w-[850px] mx-auto bg-white p-4 md:p-10 font-sans print:max-w-none print:p-0">
         
-        {/* CABEÇALHO PROFISSIONAL */}
-        <header className="mb-8 border-b-2 border-black pb-4 flex justify-between items-end">
+        {/* CABEÇALHO */}
+        <header className="mb-6 border-b-2 border-black pb-4 flex justify-between items-end">
           <div>
-            <h1 className="text-2xl font-black text-black uppercase tracking-tight">Registro Clínico de Atendimento</h1>
+            <h1 className="text-xl font-black text-black uppercase tracking-tight">Registro Médico de Atendimento</h1>
             <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">
-              Prontuário Médico • {record.patientType} {record.pediatricSubType ? `(${record.pediatricSubType})` : ''}
+              Prontuário Clínico • {record.patientType} {record.pediatricSubType ? `(${record.pediatricSubType})` : ''}
             </p>
           </div>
           <div className="text-right no-print">
-            <button onClick={handlePrint} className="bg-primary text-white px-8 py-3 rounded-2xl text-xs font-black shadow-xl hover:bg-blue-700 transition-all flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm">picture_as_pdf</span>
-              GERAR DOCUMENTO PDF
+            <button onClick={handlePrint} className="bg-primary text-white px-8 py-3 rounded-2xl text-xs font-black shadow-lg hover:bg-blue-700 transition-all flex items-center gap-2">
+              <span className="material-symbols-outlined text-sm">print</span>
+              IMPRIMIR / GERAR PDF
             </button>
           </div>
         </header>
 
-        {/* IDENTIFICAÇÃO COMPLETA */}
-        <section className="record-section border border-slate-200 p-5 rounded-2xl bg-slate-50/20">
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-8 text-[11px]">
-            <div className="col-span-2 md:col-span-3 pb-2 border-b border-slate-100">
-              <span className="font-bold text-slate-400 block uppercase text-[9px]">Nome Completo</span>
+        {/* IDENTIFICAÇÃO */}
+        <section className="record-section border border-slate-200 p-6 rounded-2xl bg-slate-50/20">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-y-4 gap-x-8 text-[11px] id-grid">
+            <div className="col-span-2 md:col-span-3 border-b border-slate-100 pb-2">
+              <span className="font-bold text-slate-400 block uppercase text-[8px]">Nome</span>
               <span className="font-black text-base text-slate-900 uppercase">{record.id.nome || 'NÃO INFORMADO'}</span>
             </div>
-            
             <div>
-              <span className="font-bold text-slate-400 block uppercase text-[9px]">Idade</span>
+              <span className="font-bold text-slate-400 block uppercase text-[8px]">Idade</span>
               <span className="font-bold text-slate-800">{record.id.idade || '--'}</span>
             </div>
             <div>
-              <span className="font-bold text-slate-400 block uppercase text-[9px]">Sexo</span>
+              <span className="font-bold text-slate-400 block uppercase text-[8px]">Sexo</span>
               <span className="font-bold text-slate-800">{record.id.sexo || '--'}</span>
             </div>
             <div>
-              <span className="font-bold text-slate-400 block uppercase text-[9px]">Cor / Raça</span>
+              <span className="font-bold text-slate-400 block uppercase text-[8px]">Cor / Raça</span>
               <span className="font-bold text-slate-800">{record.id.cor || '--'}</span>
             </div>
-            
             <div>
-              <span className="font-bold text-slate-400 block uppercase text-[9px]">Naturalidade</span>
+              <span className="font-bold text-slate-400 block uppercase text-[8px]">Naturalidade</span>
               <span className="font-bold text-slate-800">{record.id.naturalidade || '--'}</span>
             </div>
             <div className="col-span-2">
-              <span className="font-bold text-slate-400 block uppercase text-[9px]">Residência</span>
+              <span className="font-bold text-slate-400 block uppercase text-[8px]">Residência</span>
               <span className="font-bold text-slate-800">{record.id.residencia || '--'}</span>
             </div>
-
             <div>
-              <span className="font-bold text-slate-400 block uppercase text-[9px]">Estado Civil</span>
-              <span className="font-bold text-slate-800">{record.id.estadoCivil || '--'}</span>
-            </div>
-            <div>
-              <span className="font-bold text-slate-400 block uppercase text-[9px]">Profissão</span>
+              <span className="font-bold text-slate-400 block uppercase text-[8px]">Profissão</span>
               <span className="font-bold text-slate-800">{record.id.profissao || '--'}</span>
             </div>
             {record.id.escolaridade && (
               <div>
-                <span className="font-bold text-slate-400 block uppercase text-[9px]">Escolaridade</span>
+                <span className="font-bold text-slate-400 block uppercase text-[8px]">Escolaridade</span>
                 <span className="font-bold text-slate-800">{record.id.escolaridade}</span>
               </div>
             )}
-
-            {record.id.responsavel && (
-              <div className="col-span-2">
-                <span className="font-bold text-slate-400 block uppercase text-[9px]">Responsável</span>
-                <span className="font-bold text-slate-800">{record.id.responsavel}</span>
+            {record.id.cuidador && (
+              <div>
+                <span className="font-bold text-slate-400 block uppercase text-[8px]">Cuidador</span>
+                <span className="font-bold text-slate-800">{record.id.cuidador}</span>
               </div>
             )}
           </div>
@@ -238,115 +238,166 @@ const SummarySection: React.FC<Props> = ({ record }) => {
         {/* ANAMNESE */}
         <section className="record-section">
           <h3>I. Anamnese</h3>
-          <div className="space-y-6">
-            {record.qd && (
-              <div className="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                <span className="text-[9px] font-black text-slate-400 uppercase block mb-1">Queixa Principal (QD)</span>
-                <p className="text-base font-bold text-slate-900 leading-tight">{record.qd}</p>
-              </div>
-            )}
-            {record.hma && (
-              <div className="w-full">
-                <span className="text-[9px] font-black text-slate-400 uppercase block mb-1">História da Moléstia Atual (HMA)</span>
-                <div className="text-content text-sm text-slate-800">
-                  {record.hma}
-                </div>
-              </div>
-            )}
-          </div>
+          {qpHma ? (
+            <div className="text-content text-sm text-slate-800">
+              {qpHma}
+            </div>
+          ) : (
+            <p className="text-xs italic text-slate-400">Nenhum registro de QD/HMA preenchido.</p>
+          )}
         </section>
 
-        {/* AVALIAÇÕES SEMAFÓRICAS */}
-        {(cvRiskText || ivcfResultText) && (
+        {/* ISDA */}
+        {hasContent(record.isda) && (
           <section className="record-section">
-            <h3>II. Avaliações de Risco e Funcionalidade</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {cvRiskText && (
-                <div className={`p-5 border-2 rounded-2xl shadow-sm risk-block ${getCVColorClasses(cvRiskLevel)}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="material-symbols-outlined text-lg">favorite</span>
-                    <span className="text-[9px] font-black uppercase tracking-widest opacity-80">Risco Cardiovascular Global</span>
-                  </div>
-                  <p className="text-base font-black uppercase leading-tight">{cvRiskText}</p>
+            <h3>II. Revisão de Sistemas (ISDA)</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-3">
+              {Object.entries(record.isda).map(([key, val]) => val && (
+                <div key={key} className="border-b border-slate-50 pb-1">
+                  <span className="text-[8px] font-black text-slate-400 uppercase block">{labelMap[key] || key}</span>
+                  <div className="text-[10px] text-slate-700 text-content">{val}</div>
                 </div>
-              )}
-              {ivcfResultText && (
-                <div className={`p-5 border-2 rounded-2xl shadow-sm risk-block ${getIVCFColorClasses(ivcfLevel)}`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="material-symbols-outlined text-lg">elderly</span>
-                    <span className="text-[9px] font-black uppercase tracking-widest opacity-80">Avaliação IVCF-20 (Escore: {ivcfScore})</span>
-                  </div>
-                  <p className="text-base font-black uppercase leading-tight">{ivcfResultText}</p>
+              ))}
+              {record.soap?.s.isda && (
+                <div className="col-span-2 border-t border-slate-50 pt-2">
+                  <span className="text-[8px] font-black text-slate-400 uppercase block">Complemento ISDA (SOAP)</span>
+                  <div className="text-[10px] text-slate-700 text-content">{record.soap.s.isda}</div>
                 </div>
               )}
             </div>
           </section>
         )}
 
+        {/* ANTECEDENTES */}
+        <section className="record-section">
+          <h3>III. Antecedentes e Riscos</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-3">
+            {/* Loop Antecedentes Padrão */}
+            {Object.entries(record.antecedentes).map(([key, val]) => {
+              if (!val || typeof val !== 'string' || key.includes('Level') || key.includes('risco') || key.includes('ivcf')) return null;
+              return (
+                <div key={key} className="border-b border-slate-50 pb-1">
+                  <span className="text-[8px] font-black text-slate-400 uppercase block">{labelMap[key] || key}</span>
+                  <div className="text-[10px] text-slate-700 text-content">{val}</div>
+                </div>
+              );
+            })}
+            {/* Loop Antecedentes SOAP */}
+            {record.soap?.s && Object.entries(record.soap.s).map(([key, val]) => {
+              if (!val || typeof val !== 'string' || key === 'qpHma' || key === 'isda' || key === 'identificacao' || key.includes('Level') || key.includes('risco') || key.includes('ivcf')) return null;
+              return (
+                <div key={key} className="border-b border-slate-50 pb-1">
+                  <span className="text-[8px] font-black text-slate-400 uppercase block">{labelMap[key] || key}</span>
+                  <div className="text-[10px] text-slate-700 text-content">{val}</div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* RISCOS SEMAFÓRICOS NO PDF */}
+          {(cvRiskText || ivcfResultText) && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
+              {cvRiskText && (
+                <div className={`p-4 border-2 rounded-xl risk-block ${getCVColorClasses(cvRiskLevel)}`}>
+                  <span className="text-[8px] font-black uppercase block opacity-60 mb-1">Risco Cardiovascular Global</span>
+                  <p className="text-xs font-black uppercase">{cvRiskText}</p>
+                </div>
+              )}
+              {ivcfResultText && (
+                <div className={`p-4 border-2 rounded-xl risk-block ${getIVCFColorClasses(ivcfLevel)}`}>
+                  <span className="text-[8px] font-black uppercase block opacity-60 mb-1">IVCF-20 (Escore: {ivcfScore})</span>
+                  <p className="text-xs font-black uppercase">{ivcfResultText}</p>
+                </div>
+              )}
+            </div>
+          )}
+        </section>
+
         {/* EXAME FÍSICO */}
         <section className="record-section">
-          <h3>III. Exame Físico</h3>
+          <h3>IV. Exame Físico</h3>
           
-          <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mb-8 vitals-grid-print">
+          <div className="grid grid-cols-3 md:grid-cols-6 lg:grid-cols-9 gap-2 mb-6 vitals-grid-print">
             {[
               { label: 'PA', value: record.exameFisico.sinaisVitais.pa, status: vitalStatus.pa },
               { label: 'FC', value: record.exameFisico.sinaisVitais.fc ? record.exameFisico.sinaisVitais.fc + ' bpm' : '--', status: vitalStatus.fc },
               { label: 'FR', value: record.exameFisico.sinaisVitais.fr ? record.exameFisico.sinaisVitais.fr + ' irpm' : '--', status: vitalStatus.fr },
               { label: 'SAT', value: record.exameFisico.sinaisVitais.sat ? record.exameFisico.sinaisVitais.sat + '%' : '--', status: vitalStatus.sat },
               { label: 'TEMP', value: record.exameFisico.sinaisVitais.temp ? record.exameFisico.sinaisVitais.temp + '°C' : '--', status: vitalStatus.temp },
+              { label: 'PESO', value: record.exameFisico.sinaisVitais.peso ? record.exameFisico.sinaisVitais.peso + 'kg' : '--' },
+              { label: 'ESTAT', value: record.exameFisico.sinaisVitais.estatura ? record.exameFisico.sinaisVitais.estatura + 'cm' : '--' },
+              ...(record.patientType === PatientType.PEDIATRIC ? [{ label: 'PC', value: record.exameFisico.sinaisVitais.pc ? record.exameFisico.sinaisVitais.pc + 'cm' : '--' }] : []),
               { label: 'IMC', value: record.exameFisico.sinaisVitais.imc || '--', status: bmiInterpretation }
             ].map((v, i) => (
-              <div key={i} className="vital-box vital-box-print flex flex-col justify-center">
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest mb-1">{v.label}</span>
-                <span className="text-[13px] font-black text-slate-900 leading-none">{v.value}</span>
-                <span className={`text-[8px] font-black uppercase mt-1 leading-tight ${v.status?.color || 'text-slate-400'}`}>
-                  {v.status?.label || '--'}
-                </span>
+              <div key={i} className="vital-box-print rounded-lg">
+                <span className="text-[7px] font-black text-slate-400 uppercase block mb-1">{v.label}</span>
+                <span className="text-[10px] font-black text-slate-900 block">{v.value}</span>
+                {v.status && <span className={`text-[7px] font-black uppercase mt-1 block ${v.status.color}`}>{v.status.label}</span>}
               </div>
             ))}
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-3">
             {Object.entries(record.exameFisico).map(([key, val]) => {
               if (key === 'sinaisVitais' || !val || typeof val !== 'string') return null;
               return (
-                <div key={key} className="border-b border-slate-100 pb-2">
-                  <span className="text-[9px] font-black text-slate-400 uppercase block mb-1">{labelMap[key] || key}</span>
-                  <div className="text-[11px] text-slate-800 text-content">{val}</div>
+                <div key={key} className="border-b border-slate-50 pb-1.5">
+                  <span className="text-[8px] font-black text-slate-400 uppercase block mb-0.5">{labelMap[key] || key}</span>
+                  <div className="text-[10px] text-slate-800 text-content">{val}</div>
                 </div>
               );
             })}
+            {record.soap?.o && (
+              <div className="border-b border-slate-100 pb-1.5 pt-2">
+                <span className="text-[8px] font-black text-primary uppercase block mb-0.5">Objetivo / Exames Complementares (SOAP)</span>
+                <div className="text-[10px] text-slate-800 text-content">{record.soap.o}</div>
+              </div>
+            )}
           </div>
         </section>
 
-        {/* CONDUTA */}
-        <section className="record-section mb-12">
-          <h3>IV. Síntese e Plano Terapêutico</h3>
+        {/* SÍNTESE E CONDUTA */}
+        <section className="record-section">
+          <h3>V. Diagnóstico e Conduta</h3>
           <div className="space-y-6">
-            {record.fatoresRisco && (
+            {record.hipoteseDiagnostica && (
               <div>
-                <span className="text-[9px] font-black text-slate-400 uppercase block mb-1">Raciocínio Clínico</span>
-                <div className="text-content italic text-slate-600 text-[11pt]">
-                  {record.fatoresRisco}
-                </div>
+                <span className="text-[9px] font-black text-slate-400 uppercase block mb-1">Hipótese Diagnóstica Principais</span>
+                <p className="text-sm font-black text-slate-900">{record.hipoteseDiagnostica}</p>
               </div>
             )}
-            {record.conduta && (
-              <div className="p-6 bg-slate-50 border-2 border-slate-200 rounded-2xl">
-                <span className="text-[9px] font-black text-slate-400 uppercase block mb-2">Condutas e Orientações</span>
-                <div className="text-content font-bold text-slate-900 text-[13pt]">
-                  {record.conduta}
-                </div>
+            
+            {(record.fatoresRisco || (record.soap?.assessments && record.soap.assessments.length > 0)) && (
+              <div>
+                <span className="text-[9px] font-black text-slate-400 uppercase block mb-1">Avaliação e Raciocínio Clínico</span>
+                {record.fatoresRisco && <div className="text-content italic text-slate-600 text-xs mb-2">{record.fatoresRisco}</div>}
+                {record.soap?.assessments && record.soap.assessments.map((a, i) => a.text && (
+                  <div key={i} className="text-[11px] font-bold text-slate-800">• A{i+1}: {a.text}</div>
+                ))}
+              </div>
+            )}
+
+            {/* CONDUTA UNIFICADA */}
+            {(record.conduta || (record.soap?.plans && record.soap.plans.length > 0)) && (
+              <div className="p-5 bg-slate-50 border-2 border-slate-200 rounded-2xl">
+                <span className="text-[9px] font-black text-primary uppercase block mb-2">Plano de Conduta e Orientações</span>
+                {record.conduta && <div className="text-content font-bold text-slate-900 text-sm mb-4">{record.conduta}</div>}
+                
+                {record.soap?.plans && record.soap.plans.map((p, i) => p.text && (
+                  <div key={i} className="text-[11px] text-slate-900 mb-2 last:mb-0">
+                    <span className="font-black text-primary">P{i+1} [{p.category}]:</span> {p.text}
+                  </div>
+                ))}
               </div>
             )}
           </div>
         </section>
 
-        {/* ASSINATURAS */}
-        <div className="mt-20 pt-10 border-t border-slate-100">
+        {/* ASSINATURAS NO FIM DA ÚLTIMA PÁGINA */}
+        <div className="mt-16 pt-10 border-t border-slate-200">
           <div className="flex justify-around text-center">
             <div className="w-[45%] border-t border-black pt-3">
-              <p className="text-[10px] font-black uppercase text-slate-900 leading-tight">{record.id.nome || 'PACIENTE'}</p>
+              <p className="text-[10px] font-black uppercase text-slate-900">{record.id.nome || 'PACIENTE'}</p>
               <p className="text-[8px] font-bold text-slate-400 uppercase">Assinatura do Paciente / Responsável</p>
             </div>
             <div className="w-[45%] border-t border-slate-300 pt-3">
