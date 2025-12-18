@@ -1,5 +1,5 @@
 {
-  "name": "MedHist - Prontuário Clínico Acadêmico",
+  "name": "AnamneWEB",
   "description": "Uma plataforma intuitiva para estudantes de medicina realizarem anamneses e exames físicos estruturados, com assistência de IA para refinamento clínico e exportação profissional em PDF.",
   "requestFramePermissions": []
 }

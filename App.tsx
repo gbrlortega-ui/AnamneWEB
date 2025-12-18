@@ -18,6 +18,8 @@ import Navigation from './components/Navigation';
 import Sidebar from './components/Sidebar';
 import GlossaryModal from './components/GlossaryModal';
 
+const STORAGE_KEY = 'medhist_draft_v4';
+
 const INITIAL_STATE = (type: PatientType, subType?: PediatricSubType): ClinicalRecord => ({
   patientType: type,
   pediatricSubType: subType,
@@ -73,17 +75,24 @@ const INITIAL_STATE = (type: PatientType, subType?: PediatricSubType): ClinicalR
 
 const App: React.FC = () => {
   const [record, setRecord] = useState<ClinicalRecord | null>(() => {
-    const saved = localStorage.getItem('medhist_draft_v4');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      return saved ? JSON.parse(saved) : null;
+    } catch (e) {
+      console.error("Erro ao carregar rascunho:", e);
+      return null;
+    }
   });
-  const [currentStep, setCurrentStep] = useState<FormStep>(
-    record ? (record.patientType === PatientType.SOAP ? FormStep.QD_HMA : FormStep.IDENTIFICATION) : FormStep.TYPE_SELECTION
-  );
+  
+  const [currentStep, setCurrentStep] = useState<FormStep>(FormStep.TYPE_SELECTION);
   const [isGlossaryOpen, setIsGlossaryOpen] = useState(false);
 
+  // Sincronização robusta com localStorage
   useEffect(() => {
     if (record) {
-      localStorage.setItem('medhist_draft_v4', JSON.stringify(record));
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
     }
   }, [record]);
 
@@ -92,12 +101,23 @@ const App: React.FC = () => {
       setCurrentStep(FormStep.PEDIATRIC_SUB_SELECTION);
       return;
     }
-    setRecord(INITIAL_STATE(type, subType));
+    const newRecord = INITIAL_STATE(type, subType);
+    setRecord(newRecord);
     setCurrentStep(type === PatientType.SOAP ? FormStep.QD_HMA : FormStep.IDENTIFICATION);
   };
 
+  const clearDraft = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Evita interferência com outros cliques
+    if (window.confirm('Deseja realmente apagar o rascunho? Todos os dados salvos serão perdidos permanentemente.')) {
+      setRecord(null);
+      localStorage.removeItem(STORAGE_KEY);
+      // Forçamos o estado para a tela inicial por segurança
+      setCurrentStep(FormStep.TYPE_SELECTION);
+    }
+  };
+
   const updateRecord = (updates: Partial<ClinicalRecord>) => {
-    if (record) setRecord(prev => ({ ...prev!, ...updates }));
+    if (record) setRecord(prev => prev ? ({ ...prev, ...updates }) : null);
   };
 
   const nextStep = () => {
@@ -190,6 +210,38 @@ const App: React.FC = () => {
                 </p>
               </div>
 
+              {record && (
+                <div className="mb-8 p-6 bg-primary/5 rounded-2xl border border-primary/20 flex flex-col sm:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-500">
+                  <div className="flex items-center gap-4">
+                    <div className="size-12 rounded-xl bg-white dark:bg-[#1a202c] shadow-sm flex items-center justify-center text-primary">
+                      <span className="material-symbols-outlined text-3xl">history</span>
+                    </div>
+                    <div>
+                      <p className="text-xs font-black text-primary uppercase tracking-widest">Rascunho Detectado</p>
+                      <h4 className="text-sm font-bold text-slate-800 dark:text-white">{record.id.nome || 'Paciente sem nome'} ({record.patientType})</h4>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 w-full sm:w-auto">
+                    <button 
+                      type="button"
+                      onClick={clearDraft}
+                      className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl border border-red-200 text-red-600 font-bold text-xs hover:bg-red-50 transition-all flex items-center justify-center gap-2"
+                    >
+                      <span className="material-symbols-outlined text-sm">delete_sweep</span>
+                      Apagar Rascunho
+                    </button>
+                    <button 
+                      type="button"
+                      onClick={() => setCurrentStep(record.patientType === PatientType.SOAP ? FormStep.QD_HMA : (record.id.nome ? FormStep.QD_HMA : FormStep.IDENTIFICATION))}
+                      className="flex-1 sm:flex-none px-6 py-2.5 bg-primary text-white rounded-xl font-bold text-xs shadow-lg hover:bg-blue-700 transition-all flex items-center justify-center gap-2"
+                    >
+                      Continuar
+                      <span className="material-symbols-outlined text-sm">arrow_forward</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 {[
                   { 
@@ -251,15 +303,6 @@ const App: React.FC = () => {
                   </div>
                 ))}
               </div>
-
-              {record && (
-                <div className="mt-12 text-center">
-                  <button onClick={() => setCurrentStep(record.patientType === PatientType.SOAP ? FormStep.QD_HMA : FormStep.IDENTIFICATION)} className="text-xs font-bold text-primary hover:underline flex items-center justify-center gap-2 mx-auto">
-                    <span className="material-symbols-outlined text-sm">history</span>
-                    Continuar rascunho: {record.id.nome || 'Paciente sem nome'}
-                  </button>
-                </div>
-              )}
             </div>
           </div>
           <Footer />
