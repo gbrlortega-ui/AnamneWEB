@@ -34,6 +34,18 @@ const IdentificationSection: React.FC<Props> = ({ data, patientType, onChange })
           <input name="idade" value={data.idade} onChange={handleChange} placeholder={patientType === PatientType.PEDIATRIC ? "Ex: 4 meses" : "Ex: 45 anos"} className={inputClass} />
         </div>
 
+        <div>
+          <label className={labelClass}>Cor / Raça</label>
+          <select name="cor" value={data.cor} onChange={handleChange} className={inputClass}>
+            <option value="">Selecione</option>
+            <option value="Branca">Branca</option>
+            <option value="Preta">Preta</option>
+            <option value="Parda">Parda</option>
+            <option value="Amarela">Amarela</option>
+            <option value="Indígena">Indígena</option>
+          </select>
+        </div>
+
         {patientType === PatientType.PEDIATRIC && (
           <div>
             <label className={labelClass}>Nome do Responsável</label>
@@ -61,6 +73,18 @@ const IdentificationSection: React.FC<Props> = ({ data, patientType, onChange })
             <option value="Masculino">Masculino</option>
             <option value="Feminino">Feminino</option>
             <option value="Outro">Outro</option>
+          </select>
+        </div>
+
+        <div>
+          <label className={labelClass}>Estado Civil</label>
+          <select name="estadoCivil" value={data.estadoCivil} onChange={handleChange} className={inputClass}>
+            <option value="">Selecione</option>
+            <option value="Solteiro(a)">Solteiro(a)</option>
+            <option value="Casado(a)">Casado(a)</option>
+            <option value="Divorciado(a)">Divorciado(a)</option>
+            <option value="Viúvo(a)">Viúvo(a)</option>
+            <option value="União Estável">União Estável</option>
           </select>
         </div>
 
